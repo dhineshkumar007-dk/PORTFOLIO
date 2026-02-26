@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dhinesh Kumar V · ultimate interactive portfolio</title>
+    <!-- Font Awesome 6 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <!-- Google Fonts: Playfair Display + Inter + Fira Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:opsz,wght@14..32,300..700&family=Playfair+Display:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Three.js for 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+      :root {
+        --bg: #f8f6f2;
+        --container-bg: rgba(255, 255, 255, 0.85);
+        --text-primary: #1e2b3a;
+        --text-secondary: #2c3e5c;
+        --border-light: #d4dcec;
+        --card-bg: #ffffff;
+        --card-shadow: 0 5px 20px rgba(0, 0, 0, 0.03), 0 0 0 1px #e2e8f0;
+        --hover-shadow: 0 15px 30px -12px rgba(0, 50, 100, 0.15),
+          0 0 0 1px #b0c8e0;
+        --accent: #42678f;
+        --accent-light: #e1ecfc;
+        --chip-bg: #e9f0fa;
+        --chip-border: #a3bedb;
+        --expand-bg: #f4f8ff;
+        --nav-hover: #e3eaf3;
+        --meter-bg: #d9e2f0;
+        --chat-bg: #ffffff;
+        --chat-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --chat-border: #d4dcec;
+        --user-msg: #42678f;
+        --bot-msg: #f0f4fa;
+        --cursor-color: #42678f;
+        --cursor-size: 20px;
+      }
+
+      body.dark {
+        --bg: #1a2634;
+        --container-bg: rgba(30, 40, 55, 0.9);
+        --text-primary: #e3ecf5;
+        --text-secondary: #cbd5e1;
+        --border-light: #3a4b62;
+        --card-bg: #253544;
+        --card-shadow: 0 5px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px #2f4055;
+        --hover-shadow: 0 15px 30px -12px #0a121c, 0 0 0 1px #5f7a9a;
+        --accent: #88b0e0;
+        --accent-light: #2f4b70;
+        --chip-bg: #2e405b;
+        --chip-border: #5b7ca0;
+        --expand-bg: #1e3148;
+        --nav-hover: #314d6b;
+        --meter-bg: #3a4f6b;
+        --chat-bg: #253544;
+        --chat-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        --chat-border: #3a4b62;
+        --user-msg: #88b0e0;
+        --bot-msg: #2e405b;
+        --cursor-color: #88b0e0;
+      }
+
+      /* Custom cursor styles */
+      * {
+        cursor: none !important;
+      }
+      .custom-cursor {
+        position: fixed;
+        width: var(--cursor-size);
+        height: var(--cursor-size);
+        border-radius: 50%;
+        background: var(--cursor-color);
+        mix-blend-mode: difference;
+        pointer-events: none;
+        z-index: 9999;
+        transition: transform 0.1s ease, width 0.2s, height 0.2s,
+          background 0.2s;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 20px var(--cursor-color);
+      }
+      .custom-cursor.hover {
+        width: calc(var(--cursor-size) * 1.5);
+        height: calc(var(--cursor-size) * 1.5);
+        background: #ffaa66;
+        mix-blend-mode: normal;
+      }
+      .custom-cursor.click {
+        transform: translate(-50%, -50%) scale(0.8);
+      }
+
+      body {
+        background: var(--bg);
+        font-family: "Inter", sans-serif;
+        color: var(--text-primary);
+        line-height: 1.6;
+        padding: 1.5rem 1rem;
+        position: relative;
+        overflow-x: hidden;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .particle {
+        position: absolute;
+        background: var(--accent);
+        opacity: 0.05;
+        border-radius: 50%;
+        animation: float 20s infinite ease-in-out;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0px) rotate(0deg);
+        }
+        50% {
+          transform: translateY(-40px) rotate(180deg);
+        }
+        100% {
+          transform: translateY(0px) rotate(360deg);
+        }
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: repeating-linear-gradient(
+            transparent,
+            transparent 39px,
+            rgba(0, 100, 200, 0.05) 40px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 39px,
+            rgba(0, 100, 200, 0.05) 40px
+          );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .container {
+        max-width: 1300px;
+        margin: 0 auto;
+        background: var(--container-bg);
+        backdrop-filter: blur(4px);
+        border-radius: 2.5rem;
+        padding: 1.8rem 2rem;
+        box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.2),
+          0 0 0 1px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* header area */
+      .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+      .theme-toggle {
+        display: flex;
+        gap: 0.8rem;
+      }
+      .theme-toggle button,
+      .tip-btn {
+        background: var(--card-bg);
+        border: 1px solid var(--border-light);
+        border-radius: 40px;
+        padding: 0.5rem 1.2rem;
+        font-size: 1rem;
+        cursor: pointer;
+        color: var(--text-primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .theme-toggle button:hover,
+      .tip-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      /* enhanced hero with photo */
+      .hero {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .hero-photo {
+        flex-shrink: 0;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid var(--accent);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        background: var(--card-bg);
+      }
+      .hero-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .hero-text {
+        text-align: left;
+      }
+      .hero-text .greeting {
+        font-size: 1.8rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.2rem;
+      }
+      .hero-text h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #42678f, #6b4f8f, #c76d7e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+      }
+      .typing-container {
+        display: inline-block;
+        background: var(--chip-bg);
+        border-radius: 60px;
+        padding: 0.5rem 2rem;
+        border: 1px solid var(--chip-border);
+        font-family: "Fira Code", monospace;
+        font-size: 1.2rem;
+        color: var(--accent);
+        position: relative;
+      }
+      .typing-cursor {
+        display: inline-block;
+        width: 4px;
+        height: 1.4rem;
+        background: var(--accent);
+        margin-left: 5px;
+        animation: blink 1s infinite;
+      }
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0;
+        }
+      }
+
+      .marquee {
+        background: var(--chip-bg);
+        border-radius: 60px;
+        padding: 0.5rem 1.5rem;
+        margin: 1rem 0 1.5rem;
+        overflow: hidden;
+        white-space: nowrap;
+        border: 1px solid var(--chip-border);
+      }
+      .marquee span {
+        display: inline-block;
+        animation: scroll 12s linear infinite;
+        font-family: "Fira Code", monospace;
+        color: var(--accent);
+      }
+      @keyframes scroll {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      /* navigation */
+      .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-top: 1px solid var(--border-light);
+        border-bottom: 1px solid var(--border-light);
+        padding: 0.6rem 0;
+      }
+      .nav-links a {
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--text-secondary);
+        padding: 0.4rem 1.5rem;
+        border-radius: 40px;
+        transition: transform 0.2s, background 0.2s, border-color 0.2s;
+        border: 1px solid transparent;
+        cursor: pointer;
+        display: inline-block;
+      }
+      .nav-links a:hover {
+        background: var(--nav-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateY(-2px);
+      }
+
+      /* horizontal scroller */
+      .scroll-container {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 2rem;
+        padding: 0.5rem 0.2rem 2rem;
+        scroll-behavior: smooth;
+        scrollbar-width: thin;
+        scrollbar-color: var(--accent) var(--chip-bg);
+        flex: 1;
+      }
+      .scroll-container::-webkit-scrollbar {
+        height: 8px;
+      }
+      .scroll-container::-webkit-scrollbar-thumb {
+        background: var(--accent);
+        border-radius: 20px;
+      }
+      .scroll-container::-webkit-scrollbar-track {
+        background: var(--chip-bg);
+        border-radius: 20px;
+      }
+
+      .section-card {
+        flex: 0 0 calc(100% - 2rem);
+        max-width: 800px;
+        margin-right: 1rem;
+        scroll-snap-align: start;
+        background: var(--card-bg);
+        border-radius: 2rem;
+        padding: 2rem 2.2rem;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        z-index: 5;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+      }
+      .section-card:hover {
+        box-shadow: var(--hover-shadow);
+        transform: translateY(-5px) rotateX(1deg) rotateY(1deg);
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.8rem;
+        border-left: 6px solid var(--accent);
+        padding-left: 1.5rem;
+      }
+      .section-header i {
+        font-size: 2.2rem;
+        color: var(--accent);
+      }
+      .section-header h2 {
+        font-family: "Playfair Display", serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      .summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+      }
+      .summary-text {
+        flex: 2 1 300px;
+      }
+      .summary-img {
+        flex: 1 1 180px;
+        background: var(--chip-bg);
+        border-radius: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        font-size: 3rem;
+        border: 1px dashed var(--chip-border);
+        min-height: 130px;
+        transition: transform 0.3s;
+      }
+      .summary-img:hover {
+        transform: scale(1.05) rotate(2deg);
+      }
+
+      .expand-btn {
+        background: transparent;
+        border: 2px solid var(--accent);
+        border-radius: 60px;
+        padding: 0.5rem 2rem;
+        font-family: "Fira Code", monospace;
+        font-weight: 600;
+        color: var(--accent);
+        margin-top: 1.2rem;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .expand-btn:hover {
+        background: var(--accent-light);
+        border-color: var(--accent);
+        color: var(--text-primary);
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .details-expand {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.6s ease, opacity 0.5s ease, margin 0.3s;
+        background: var(--expand-bg);
+        border-radius: 1.5rem;
+        margin-top: 0;
+        border: 1px solid transparent;
+      }
+      .section-card.expanded .details-expand {
+        max-height: 2000px; /* increased for new content */
+        opacity: 1;
+        margin-top: 2rem;
+        padding: 2rem;
+        border-color: var(--accent);
+      }
+
+      .tech-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin: 1.2rem 0;
+      }
+      .tech-chip {
+        background: var(--chip-bg);
+        border: 1px solid var(--chip-border);
+        border-radius: 40px;
+        padding: 0.3rem 1.5rem;
+        font-family: "Fira Code", monospace;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        transition: transform 0.2s, background 0.2s;
+      }
+      .tech-chip:hover {
+        transform: scale(1.1) translateY(-2px);
+        background: var(--accent-light);
+      }
+
+      /* Advanced tech stack grid */
+      .tech-stack-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+      }
+      .tech-card {
+        background: var(--card-bg);
+        border: 2px solid var(--chip-border);
+        border-radius: 1.2rem;
+        padding: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transition: transform 0.3s;
+      }
+      .tech-card:hover {
+        transform: scale(1.02) translateY(-3px);
+        border-color: var(--accent);
+      }
+      .tech-card i {
+        font-size: 2.5rem;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+      .tech-card h4 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+      }
+      .tech-card .proficiency {
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+      .proficiency-bar {
+        height: 6px;
+        background: var(--meter-bg);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 0.3rem 0;
+      }
+      .proficiency-fill {
+        height: 100%;
+        background: var(--accent);
+        width: 0%;
+      }
+      .tech-card .exp {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      .skill-meter {
+        margin: 1rem 0;
+      }
+      .meter-label {
+        display: flex;
+        justify-content: space-between;
+        font-family: "Fira Code", monospace;
+        font-size: 0.9rem;
+      }
+      .meter-bar {
+        height: 8px;
+        background: var(--meter-bg);
+        border-radius: 20px;
+        margin: 0.3rem 0 0.8rem;
+        overflow: hidden;
+      }
+      .meter-fill {
+        height: 100%;
+        background: var(--accent);
+        width: 0%;
+        border-radius: 20px;
+        transition: width 0.5s ease;
+      }
+
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+      }
+      .photo-card {
+        background: var(--card-bg);
+        border: 1px solid var(--chip-border);
+        border-radius: 1rem;
+        padding: 1rem;
+        text-align: center;
+        transition: transform 0.3s;
+      }
+      .photo-card:hover {
+        transform: scale(1.05) rotate(1deg);
+      }
+      .photo-card i {
+        font-size: 2.5rem;
+        color: var(--accent);
+      }
+
+      .info-row {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+      }
+      .info-col {
+        flex: 1 1 200px;
+        background: var(--chip-bg);
+        border-radius: 1rem;
+        padding: 1.2rem;
+        border-left: 5px solid var(--accent);
+        transition: transform 0.2s;
+      }
+      .info-col:hover {
+        transform: translateX(5px);
+      }
+
+      .contact-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        justify-content: center;
+      }
+      .contact-item {
+        background: var(--chip-bg);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        flex: 1 1 180px;
+        text-align: center;
+        border: 1px solid var(--chip-border);
+        transition: transform 0.3s;
+      }
+      .contact-item:hover {
+        transform: translateY(-5px) scale(1.02);
+      }
+
+      .copy-btn {
+        background: transparent;
+        border: 1px dashed var(--accent);
+        border-radius: 40px;
+        padding: 0.2rem 1rem;
+        margin-left: 0.5rem;
+        cursor: pointer;
+        color: var(--accent);
+      }
+      .copy-btn:hover {
+        background: var(--accent-light);
+      }
+
+      /* scroll controls */
+      .scroll-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .arrow {
+        background: var(--card-bg);
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--accent);
+        font-size: 1.3rem;
+        transition: transform 0.2s, background 0.2s;
+      }
+      .arrow:hover {
+        background: var(--accent-light);
+        transform: scale(1.1);
+      }
+      .dots {
+        display: flex;
+        gap: 0.8rem;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--chip-border);
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+      }
+      .dot:hover {
+        transform: scale(1.3);
+      }
+      .dot.active {
+        background: var(--accent);
+        transform: scale(1.2);
+      }
+
+      /* Gamification badges */
+      .achievement-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        margin: 1rem 0 1rem;
+      }
+      .achievement-badge {
+        background: var(--chip-bg);
+        border: 2px solid var(--accent);
+        border-radius: 60px;
+        padding: 0.5rem 1.5rem;
+        font-family: "Fira Code", monospace;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        opacity: 0.3;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .achievement-badge.unlocked {
+        opacity: 1;
+        transform: scale(1.05);
+        background: var(--accent);
+        color: white;
+        border-color: white;
+      }
+      .achievement-badge i {
+        font-size: 1.2rem;
+      }
+
+      .tip-widget {
+        background: var(--chip-bg);
+        border-radius: 60px;
+        padding: 0.5rem 1.5rem;
+        margin-top: 1rem;
+        font-size: 0.95rem;
+        border: 1px solid var(--accent);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      footer {
+        text-align: center;
+        color: var(--text-secondary);
+        font-family: "Fira Code", monospace;
+        border-top: 1px solid var(--border-light);
+        padding-top: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      /* ---------- CHATBOT ---------- */
+      .chat-button {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        cursor: pointer;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+        border: 3px solid var(--card-bg);
+        transition: transform 0.2s;
+      }
+      .chat-button:hover {
+        transform: scale(1.1);
+      }
+
+      .chat-window {
+        position: fixed;
+        bottom: 5.5rem;
+        right: 2rem;
+        width: 350px;
+        height: 500px;
+        background: var(--chat-bg);
+        border-radius: 20px;
+        box-shadow: var(--chat-shadow);
+        border: 2px solid var(--chat-border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 99;
+        transition: opacity 0.3s, transform 0.3s;
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+      }
+      .chat-window.open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+      }
+
+      .chat-header {
+        background: var(--accent);
+        color: white;
+        padding: 0.8rem 1.2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+      }
+      .chat-header span {
+        font-family: "Fira Code", monospace;
+      }
+      .chat-close {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+      .chat-clear {
+        background: transparent;
+        border: 1px solid white;
+        border-radius: 30px;
+        color: white;
+        padding: 0.2rem 0.8rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        margin-left: 0.5rem;
+      }
+
+      .chat-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .message {
+        max-width: 85%;
+        padding: 0.6rem 1rem;
+        border-radius: 18px;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+      }
+      .user-message {
+        align-self: flex-end;
+        background: var(--user-msg);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+      .bot-message {
+        align-self: flex-start;
+        background: var(--bot-msg);
+        color: var(--text-primary);
+        border-bottom-left-radius: 4px;
+      }
+      .typing-indicator {
+        display: flex;
+        gap: 0.3rem;
+        padding: 0.6rem 1rem;
+        background: var(--bot-msg);
+        border-radius: 18px;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+      }
+      .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: var(--text-secondary);
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+      }
+      .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes typing {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.4;
+        }
+        30% {
+          transform: translateY(-6px);
+          opacity: 1;
+        }
+      }
+
+      .chat-input-area {
+        display: flex;
+        padding: 0.8rem;
+        border-top: 1px solid var(--border-light);
+        background: var(--chat-bg);
+      }
+      .chat-input {
+        flex: 1;
+        padding: 0.6rem 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: 30px;
+        background: var(--card-bg);
+        color: var(--text-primary);
+        outline: none;
+      }
+      .chat-send {
+        background: var(--accent);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin-left: 0.5rem;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .quick-replies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.8rem;
+        border-top: 1px solid var(--border-light);
+      }
+      .quick-reply {
+        background: var(--chip-bg);
+        border: 1px solid var(--chip-border);
+        border-radius: 30px;
+        padding: 0.3rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        color: var(--text-primary);
+      }
+      .quick-reply:hover {
+        background: var(--accent-light);
+      }
+
+      /* 3D canvas container */
+      #canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      @media (max-width: 700px) {
+        .chat-window {
+          width: 300px;
+          height: 450px;
+          right: 1rem;
+          bottom: 5rem;
+        }
+        .chat-button {
+          right: 1rem;
+          bottom: 1rem;
+        }
+        .hero {
+          flex-direction: column;
+          text-align: center;
+        }
+        .hero-text {
+          text-align: center;
+        }
+        .hero h1 {
+          font-size: 2.8rem;
+        }
+        .section-header h2 {
+          font-size: 2rem;
+        }
+        .container {
+          padding: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="light">
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- 3D canvas container -->
+    <div id="canvas-container"></div>
+
+    <div class="particles" id="particles"></div>
+
+    <!-- Chat Button -->
+    <div class="chat-button" id="chatButton">
+      <i class="fas fa-headset"></i>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <span><i class="fas fa-robot"></i> Dhinesh's AI Assistant</span>
+        <div>
+          <button class="chat-clear" id="chatClear">clear</button>
+          <button class="chat-close" id="chatClose">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot-message">
+          Hey! I'm Dhinesh's virtual assistant. Ask me anything about his
+          skills, projects, education, certifications, AI interests, or contact
+          info. I'm here to help!
+        </div>
+      </div>
+      <div class="quick-replies" id="quickReplies">
+        <span class="quick-reply" data-question="skills">💻 Skills</span>
+        <span class="quick-reply" data-question="projects">📁 Projects</span>
+        <span class="quick-reply" data-question="contact">📧 Contact</span>
+        <span class="quick-reply" data-question="education">🎓 Education</span>
+        <span class="quick-reply" data-question="interests">🤖 Interests</span>
+        <span class="quick-reply" data-question="certifications"
+          >📜 Certifications</span
+        >
+      </div>
+      <div class="chat-input-area">
+        <input
+          type="text"
+          class="chat-input"
+          id="chatInput"
+          placeholder="Ask me anything..."
+        />
+        <button class="chat-send" id="chatSend">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- header row -->
+      <div class="header-row">
+        <div class="theme-toggle">
+          <button id="themeToggle">
+            <i class="fas fa-moon"></i> <span>dark mode</span>
+          </button>
+          <button class="tip-btn" id="randomTipBtn">
+            <i class="fas fa-lightbulb"></i> tech tip
+          </button>
+        </div>
+        <div style="width: 100px"></div>
+        <!-- spacer -->
+      </div>
+
+      <!-- Enhanced hero with photo -->
+      <div class="hero">
+        <div class="hero-photo">
+          <!-- Professional avatar with initials (replace with actual photo later) -->
+          <img
+            src="https://ui-avatars.com/api/?name=Dhinesh+Kumar&size=200&background=42678f&color=fff&bold=true&length=2&font-size=0.6"
+            alt="Dhinesh Kumar"
+          />
+        </div>
+        <div class="hero-text">
+          <div class="greeting">Hi, I'm</div>
+          <h1>Dhinesh Kumar V</h1>
+          <div class="typing-container">
+            <span id="typing-text"></span><span class="typing-cursor"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- marquee (currently learning) -->
+      <div class="marquee">
+        <span
+          >⚡ currently diving deep: LangChain &nbsp;•&nbsp; TypeScript
+          &nbsp;•&nbsp; Docker &nbsp;•&nbsp; Next.js &nbsp;•&nbsp; Prisma
+          &nbsp;⚡</span
+        >
+      </div>
+
+      <!-- Gamification badges -->
+      <div class="achievement-container" id="achievementContainer">
+        <div class="achievement-badge" id="badgeExplorer">
+          <i class="fas fa-eye"></i> Explorer (view all)
+        </div>
+        <div class="achievement-badge" id="badgeExpander">
+          <i class="fas fa-expand-alt"></i> Expander (expand all)
+        </div>
+        <div class="achievement-badge" id="badgeChatter">
+          <i class="fas fa-comments"></i> Chatter (chat 5x)
+        </div>
+      </div>
+
+      <!-- nav links -->
+      <nav class="nav-links">
+        <a data-index="0">HOME</a>
+        <a data-index="1">SKILLS</a>
+        <a data-index="2">PROJECTS</a>
+        <a data-index="3">INTENTION</a>
+        <a data-index="4">CONTACT</a>
+      </nav>
+
+      <!-- horizontal scroll container -->
+      <div class="scroll-container" id="scrollContainer">
+        <!-- Home -->
+        <section class="section-card" id="section0" data-index="0">
+          <div class="section-header">
+            <i class="fas fa-user-graduate"></i>
+            <h2>architect’s bio</h2>
+          </div>
+          <div class="summary">
+            <div class="summary-text">
+              <p style="font-size: 1.5rem; font-weight: 600">Dhinesh Kumar V</p>
+              <p>
+                Final-year CS @ GCE Salem. CGPA 7.5 | 93.83% (12th). Certified:
+                Java (Udemy), Oracle AI 2025.
+              </p>
+              <div><i class="fas fa-map-pin"></i> Tamil Nadu, India</div>
+            </div>
+            <div class="summary-img"><i class="fas fa-user-cog"></i></div>
+          </div>
+          <button class="expand-btn" onclick="toggleCard(this)">
+            <i class="fas fa-chevron-down"></i> expand
+          </button>
+          <div class="details-expand">
+            <div class="photo-grid">
+              <div class="photo-card">
+                <i class="fas fa-graduation-cap"></i>
+                <p>GCE Salem · 2027</p>
+              </div>
+              <div class="photo-card">
+                <i class="fas fa-certificate"></i>
+                <p>Oracle AI 2025</p>
+              </div>
+              <div class="photo-card">
+                <i class="fas fa-laptop-code"></i>
+                <p>full‑stack focus</p>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-col">
+                <strong>Education</strong><br />BE CSE (2027)<br />Higher sec
+                93.83%
+              </div>
+              <div class="info-col">
+                <strong>Certifications</strong><br />Java for Beginners<br />Oracle
+                AI Foundations
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Skills -->
+        <section class="section-card" id="section1" data-index="1">
+          <div class="section-header">
+            <i class="fas fa-microchip"></i>
+            <h2>technical repertoire</h2>
+          </div>
+          <div class="summary">
+            <div class="summary-text">
+              <p><strong>Languages:</strong> C, C++, Java</p>
+              <p><strong>Web:</strong> HTML5, CSS3, JS, React (basic)</p>
+              <p><strong>Concepts:</strong> DSA, AI prompting</p>
+              <p><strong>Tools:</strong> GitHub, VS Code, MongoDB</p>
+            </div>
+            <div class="summary-img"><i class="fas fa-code"></i></div>
+          </div>
+          <button class="expand-btn" onclick="toggleCard(this)">
+            <i class="fas fa-chevron-down"></i> expand
+          </button>
+          <div class="details-expand">
+            <div class="tech-cloud">
+              <span class="tech-chip">TypeScript</span
+              ><span class="tech-chip">Next.js</span
+              ><span class="tech-chip">Tailwind</span>
+              <span class="tech-chip">GraphQL</span
+              ><span class="tech-chip">Prisma</span
+              ><span class="tech-chip">Docker</span>
+              <span class="tech-chip">LangChain</span>
+            </div>
+
+            <!-- Advanced tech stack grid -->
+            <h3 style="color: var(--accent); margin: 1.5rem 0 0.5rem">
+              ⚙️ detailed proficiency
+            </h3>
+            <div class="tech-stack-grid">
+              <div class="tech-card">
+                <i class="fab fa-java"></i>
+                <h4>Java</h4>
+                <div class="proficiency">
+                  <div class="proficiency-bar">
+                    <div class="proficiency-fill" style="width: 80%"></div>
+                  </div>
+                  <span>80%</span>
+                </div>
+                <div class="exp">2+ years</div>
+              </div>
+              <div class="tech-card">
+                <i class="fab fa-js"></i>
+                <h4>JavaScript</h4>
+                <div class="proficiency">
+                  <div class="proficiency-bar">
+                    <div class="proficiency-fill" style="width: 85%"></div>
+                  </div>
+                  <span>85%</span>
+                </div>
+                <div class="exp">2+ years</div>
+              </div>
+              <div class="tech-card">
+                <i class="fab fa-react"></i>
+                <h4>React</h4>
+                <div class="proficiency">
+                  <div class="proficiency-bar">
+                    <div class="proficiency-fill" style="width: 60%"></div>
+                  </div>
+                  <span>60%</span>
+                </div>
+                <div class="exp">1 year</div>
+              </div>
+              <div class="tech-card">
+                <i class="fab fa-node"></i>
+                <h4>Node.js</h4>
+                <div class="proficiency">
+                  <div class="proficiency-bar">
+                    <div class="proficiency-fill" style="width: 70%"></div>
+                  </div>
+                  <span>70%</span>
+                </div>
+                <div class="exp">1.5 years</div>
+              </div>
+              <div class="tech-card">
+                <i class="fas fa-database"></i>
+                <h4>MongoDB</h4>
+                <div class="proficiency">
+                  <div class="proficiency-bar">
+                    <div class="proficiency-fill" style="width: 65%"></div>
+                  </div>
+                  <span>65%</span>
+                </div>
+                <div class="exp">1.5 years</div>
+              </div>
+              <div class="tech-card">
+                <i class="fab fa-python"></i>
+                <h4>Python</h4>
+                <div class="proficiency">
+                  <div class="proficiency-bar">
+                    <div class="proficiency-fill" style="width: 50%"></div>
+                  </div>
+                  <span>50%</span>
+                </div>
+                <div class="exp">learning</div>
+              </div>
+            </div>
+
+            <div class="skill-meter">
+              <div class="meter-label"><span>Java</span> <span>80%</span></div>
+              <div class="meter-bar">
+                <div class="meter-fill" style="width: 80%"></div>
+              </div>
+              <div class="meter-label">
+                <span>JavaScript</span> <span>85%</span>
+              </div>
+              <div class="meter-bar">
+                <div class="meter-fill" style="width: 85%"></div>
+              </div>
+              <div class="meter-label"><span>React</span> <span>60%</span></div>
+              <div class="meter-bar">
+                <div class="meter-fill" style="width: 60%"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Projects -->
+        <section class="section-card" id="section2" data-index="2">
+          <div class="section-header">
+            <i class="fas fa-drafting-compass"></i>
+            <h2>flagship project</h2>
+          </div>
+          <div class="summary">
+            <div class="summary-text">
+              <p style="font-size: 1.4rem">QR Visitor Tracking · AI powered</p>
+              <p>
+                Offline‑first QR, auto‑sync, anomaly detection. Tech:
+                HTML/CSS/JS, Node.js, Express, MongoDB, IndexedDB.
+              </p>
+            </div>
+            <div class="summary-img"><i class="fas fa-qrcode"></i></div>
+          </div>
+          <button class="expand-btn" onclick="toggleCard(this)">
+            <i class="fas fa-chevron-down"></i> expand
+          </button>
+          <div class="details-expand">
+            <div class="photo-grid">
+              <div class="photo-card">
+                <i class="fas fa-robot"></i>
+                <p>AI anomaly detection</p>
+              </div>
+              <div class="photo-card">
+                <i class="fas fa-database"></i>
+                <p>IndexedDB offline</p>
+              </div>
+              <div class="photo-card">
+                <i class="fas fa-lock"></i>
+                <p>Encrypted QR</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Intention -->
+        <section class="section-card" id="section3" data-index="3">
+          <div class="section-header">
+            <i class="fas fa-brain"></i>
+            <h2>ai design intention</h2>
+          </div>
+          <div class="summary">
+            <div class="summary-text">
+              <p><strong>Role prompting:</strong> Autonomous visitor agent</p>
+              <p><strong>Content‑based:</strong> Contextual QR analysis</p>
+              <p><strong>Multitask prompting:</strong> Parallel ops</p>
+            </div>
+            <div class="summary-img">
+              <i class="fas fa-diagram-project"></i>
+            </div>
+          </div>
+          <button class="expand-btn" onclick="toggleCard(this)">
+            <i class="fas fa-chevron-down"></i> expand
+          </button>
+          <div class="details-expand">
+            <div class="photo-grid">
+              <div class="photo-card">
+                <i class="fas fa-people-arrows"></i>
+                <p>Role prompting</p>
+              </div>
+              <div class="photo-card">
+                <i class="fas fa-file-signature"></i>
+                <p>Content-based</p>
+              </div>
+              <div class="photo-card">
+                <i class="fas fa-tasks"></i>
+                <p>Multitask</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Contact -->
+        <section class="section-card" id="section4" data-index="4">
+          <div class="section-header">
+            <i class="fas fa-address-card"></i>
+            <h2>contact sheet</h2>
+          </div>
+          <div class="summary">
+            <div class="summary-text">
+              <p>
+                <i class="fas fa-envelope"></i> venkatragavandurairaj@gmail.com
+                <button class="copy-btn" onclick="copyEmail(event)">
+                  <i class="fas fa-copy"></i> copy
+                </button>
+              </p>
+              <p><i class="fas fa-map-pin"></i> Tamil Nadu, India</p>
+              <p><i class="fab fa-github"></i> github/dhinesh-kv</p>
+              <p><i class="fab fa-linkedin"></i> linkedin/in/dhinesh-kumar-v</p>
+            </div>
+            <div class="summary-img">
+              <i class="fas fa-map-location-dot"></i>
+            </div>
+          </div>
+          <button class="expand-btn" onclick="toggleCard(this)">
+            <i class="fas fa-chevron-down"></i> expand
+          </button>
+          <div class="details-expand">
+            <div class="contact-grid">
+              <div class="contact-item">
+                <i class="fas fa-envelope"></i>
+                <div>response within 24h</div>
+              </div>
+              <div class="contact-item">
+                <i class="fab fa-github"></i>
+                <div>github/dhinesh-kv</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- scroll controls -->
+      <div class="scroll-controls">
+        <div class="arrow" id="scrollLeft">
+          <i class="fas fa-chevron-left"></i>
+        </div>
+        <div class="dots" id="dotContainer"></div>
+        <div class="arrow" id="scrollRight">
+          <i class="fas fa-chevron-right"></i>
+        </div>
+      </div>
+
+      <!-- random tip widget -->
+      <div class="tip-widget" id="tipWidget">
+        <i class="fas fa-lightbulb" style="color: var(--accent)"></i>
+        <span id="tipText">Click the lightbulb for a tech tip!</span>
+      </div>
+
+      <footer>
+        <p>
+          © 2026 Dhinesh Kumar V · ultimate interactive portfolio · set in
+          Inter, Playfair, Fira Code
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      // ----- Custom cursor -----
+      const cursor = document.getElementById("customCursor");
+      document.addEventListener("mousemove", (e) => {
+        cursor.style.left = e.clientX + "px";
+        cursor.style.top = e.clientY + "px";
+      });
+      document.addEventListener("mousedown", () =>
+        cursor.classList.add("click")
+      );
+      document.addEventListener("mouseup", () =>
+        cursor.classList.remove("click")
+      );
+
+      // Hover effect for interactive elements
+      const hoverables = document.querySelectorAll(
+        "a, button, .expand-btn, .tech-chip, .arrow, .dot, .summary-img, .photo-card, .contact-item, .chat-button"
+      );
+      hoverables.forEach((el) => {
+        el.addEventListener("mouseenter", () => cursor.classList.add("hover"));
+        el.addEventListener("mouseleave", () =>
+          cursor.classList.remove("hover")
+        );
+      });
+
+      // ----- 3D rotating cube with tech icons (Three.js) -----
+      const container3D = document.getElementById("canvas-container");
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({ alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x000000, 0); // transparent
+      container3D.appendChild(renderer.domElement);
+
+      // Create a cube with colored materials
+      const colors = [
+        "#f89820",
+        "#f7df1e",
+        "#61dafb",
+        "#8cc84b",
+        "#47A248",
+        "#4285F4",
+      ];
+      const materials = colors.map(
+        (c) => new THREE.MeshBasicMaterial({ color: c })
+      );
+      const geometry = new THREE.BoxGeometry(2, 2, 2);
+      const cube = new THREE.Mesh(geometry, materials);
+      scene.add(cube);
+
+      camera.position.z = 5;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // ----- Enhanced typing effect with personality -----
+      const typingText = document.getElementById("typing-text");
+      const phrases = [
+        "Full‑Stack Developer",
+        "AI Enthusiast",
+        "DSA Learner",
+        "Oracle Certified",
+        "LangChain Explorer",
+        "Coffee lover ☕",
+        "Open source fan",
+        "Problem solver",
+      ];
+      let phraseIndex = 0;
+      let charIndex = 0;
+      let isDeleting = false;
+      let currentColor = "#42678f";
+
+      function typeEffect() {
+        const currentPhrase = phrases[phraseIndex];
+        if (isDeleting) {
+          typingText.textContent = currentPhrase.substring(0, charIndex - 1);
+          charIndex--;
+        } else {
+          typingText.textContent = currentPhrase.substring(0, charIndex + 1);
+          charIndex++;
+        }
+
+        if (!isDeleting && charIndex === currentPhrase.length) {
+          isDeleting = true;
+          setTimeout(typeEffect, 2000);
+        } else if (isDeleting && charIndex === 0) {
+          isDeleting = false;
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+          // Change color randomly
+          currentColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+          typingText.style.color = currentColor;
+          setTimeout(typeEffect, 500);
+        } else {
+          setTimeout(typeEffect, isDeleting ? 50 : 100);
+        }
+      }
+      typeEffect();
+
+      // ----- Gamification -----
+      const badgeExplorer = document.getElementById("badgeExplorer");
+      const badgeExpander = document.getElementById("badgeExpander");
+      const badgeChatter = document.getElementById("badgeChatter");
+      let sectionsViewed = 0;
+      let expandedCount = 0;
+      let chatCount = 0;
+
+      // Track section views (via IntersectionObserver)
+      const sectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              sectionsViewed++;
+              if (sectionsViewed >= 5) badgeExplorer.classList.add("unlocked");
+            }
+          });
+        },
+        { threshold: 0.6 }
+      );
+      document
+        .querySelectorAll(".section-card")
+        .forEach((s) => sectionObserver.observe(s));
+
+      // Track expands
+      window.toggleCard = function (btn) {
+        const card = btn.closest(".section-card");
+        card.classList.toggle("expanded");
+        if (card.classList.contains("expanded")) {
+          expandedCount++;
+          if (expandedCount >= 5) badgeExpander.classList.add("unlocked");
+        }
+      };
+
+      // ----- Theme toggle (fixed) -----
+      const themeToggle = document.getElementById("themeToggle");
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        const isDark = document.body.classList.contains("dark");
+        themeToggle.innerHTML = isDark
+          ? '<i class="fas fa-sun"></i> <span>light mode</span>'
+          : '<i class="fas fa-moon"></i> <span>dark mode</span>';
+      });
+
+      // ----- Copy email -----
+      window.copyEmail = function (e) {
+        e.stopPropagation();
+        const email = "venkatragavandurairaj@gmail.com";
+        navigator.clipboard.writeText(email).then(() => {
+          alert("Email copied!");
+        });
+      };
+
+      // ----- Particles -----
+      function createParticles() {
+        const particlesDiv = document.getElementById("particles");
+        for (let i = 0; i < 12; i++) {
+          const p = document.createElement("div");
+          p.className = "particle";
+          const size = Math.random() * 150 + 50;
+          p.style.width = size + "px";
+          p.style.height = size + "px";
+          p.style.left = Math.random() * 100 + "%";
+          p.style.top = Math.random() * 100 + "%";
+          p.style.animationDelay = Math.random() * 10 + "s";
+          p.style.animationDuration = Math.random() * 20 + 15 + "s";
+          particlesDiv.appendChild(p);
+        }
+      }
+      createParticles();
+
+      // ----- Horizontal scroll navigation (fixed) -----
+      const container = document.getElementById("scrollContainer");
+      const sections = document.querySelectorAll(".section-card");
+      const dotContainer = document.getElementById("dotContainer");
+      const leftArrow = document.getElementById("scrollLeft");
+      const rightArrow = document.getElementById("scrollRight");
+      const navLinks = document.querySelectorAll(".nav-links a");
+
+      // Clear and create dots
+      dotContainer.innerHTML = "";
+      sections.forEach((_, i) => {
+        const dot = document.createElement("span");
+        dot.classList.add("dot");
+        dot.dataset.index = i;
+        dot.addEventListener("click", () => {
+          sections[i].scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start",
+          });
+        });
+        dotContainer.appendChild(dot);
+      });
+
+      function updateActiveDot() {
+        if (sections.length === 0) return;
+        const scrollPos = container.scrollLeft;
+        let activeIndex = 0;
+        let minDiff = Infinity;
+        sections.forEach((section, i) => {
+          const rect = section.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const diff = Math.abs(rect.left - containerRect.left);
+          if (diff < minDiff) {
+            minDiff = diff;
+            activeIndex = i;
+          }
+        });
+        document.querySelectorAll(".dot").forEach((dot, i) => {
+          dot.classList.toggle("active", i === activeIndex);
+        });
+      }
+
+      container.addEventListener("scroll", updateActiveDot);
+      window.addEventListener("resize", updateActiveDot);
+      setTimeout(updateActiveDot, 100);
+
+      leftArrow.addEventListener("click", () => {
+        const containerWidth = container.clientWidth;
+        const scrollAmount = containerWidth * 0.8;
+        container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+      });
+      rightArrow.addEventListener("click", () => {
+        const containerWidth = container.clientWidth;
+        const scrollAmount = containerWidth * 0.8;
+        container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      });
+
+      // Nav links scroll
+      navLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          const idx = link.dataset.index;
+          sections[idx].scrollIntoView({ behavior: "smooth", inline: "start" });
+        });
+      });
+
+      // ----- Random tech tips -----
+      const tips = [
+        "TypeScript reduces runtime errors.",
+        "Next.js 14 supports server actions.",
+        "Docker containers are ephemeral.",
+        "GraphQL queries can be batched.",
+        "LangChain simplifies LLM workflows.",
+        "Prisma is a type-safe ORM.",
+        "IndexedDB works offline.",
+        "Tailwind's JIT compiler is fast.",
+      ];
+      document.getElementById("randomTipBtn").addEventListener("click", () => {
+        const random = tips[Math.floor(Math.random() * tips.length)];
+        document.getElementById("tipText").textContent = random;
+      });
+
+      // ---------- CHATBOT (with gamification counter) ----------
+      const chatButton = document.getElementById("chatButton");
+      const chatWindow = document.getElementById("chatWindow");
+      const chatClose = document.getElementById("chatClose");
+      const chatClear = document.getElementById("chatClear");
+      const chatMessages = document.getElementById("chatMessages");
+      const chatInput = document.getElementById("chatInput");
+      const chatSend = document.getElementById("chatSend");
+      const quickReplies = document.querySelectorAll(".quick-reply");
+
+      let lastTopic = null;
+
+      chatButton.addEventListener("click", () => {
+        chatWindow.classList.toggle("open");
+      });
+      chatClose.addEventListener("click", () => {
+        chatWindow.classList.remove("open");
+      });
+
+      chatClear.addEventListener("click", () => {
+        chatMessages.innerHTML =
+          "<div class=\"message bot-message\">Hey! I'm Dhinesh's virtual assistant. Ask me anything about his skills, projects, education, certifications, AI interests, or contact info. I'm here to help!</div>";
+        lastTopic = null;
+      });
+
+      function showTyping() {
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "typing-indicator";
+        typingDiv.id = "typingIndicator";
+        typingDiv.innerHTML = "<span></span><span></span><span></span>";
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function removeTyping() {
+        const typing = document.getElementById("typingIndicator");
+        if (typing) typing.remove();
+      }
+
+      function addUserMessage(text) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "message user-message";
+        msgDiv.textContent = text;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function addBotMessage(text) {
+        removeTyping();
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "message bot-message";
+        msgDiv.textContent = text;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function processUserInput(input) {
+        const lower = input.toLowerCase().trim();
+        let reply = "";
+
+        if (
+          lower.match(/^(hi|hello|hey|greetings|good morning|good afternoon)/)
+        ) {
+          reply =
+            "Hello! 👋 I'm Dhinesh's assistant. Feel free to ask about his skills, projects, education, certifications, AI work, or how to contact him.";
+        } else if (
+          lower.includes("skill") ||
+          lower.includes("technologies") ||
+          lower.includes("languages") ||
+          lower.includes("programming") ||
+          lower.includes("stack")
+        ) {
+          reply =
+            "Dhinesh is proficient in **C, C++, Java**, and front-end technologies like **HTML, CSS, JavaScript, React**. He's also exploring advanced tools: TypeScript, Next.js, Docker, and LangChain. His self-rated proficiency: Java 80%, JavaScript 85%, React 60%. Would you like to know more about a specific area?";
+          lastTopic = "skills";
+        } else if (
+          lower.includes("project") ||
+          lower.includes("qr") ||
+          lower.includes("visitor") ||
+          lower.includes("tracking")
+        ) {
+          reply =
+            "His flagship project is **QR Visitor Tracking**, an offline‑first system with AI-powered anomaly detection. Built with Node.js, Express, MongoDB, and IndexedDB. It works offline, syncs automatically, and uses AI for predictive sync and anomaly detection. Want to hear about the AI layer?";
+          lastTopic = "projects";
+        } else if (
+          lower.includes("education") ||
+          lower.includes("college") ||
+          lower.includes("university") ||
+          lower.includes("degree") ||
+          lower.includes("study") ||
+          lower.includes("cgpa") ||
+          lower.includes("12th")
+        ) {
+          reply =
+            "Dhinesh is a final-year CS student at **Government College of Engineering, Salem** (expected 2027). His CGPA is 7.5. He scored 93.83% in 12th and has completed his secondary education. Anything else you'd like to know?";
+          lastTopic = "education";
+        } else if (
+          lower.includes("certif") ||
+          lower.includes("oracle") ||
+          lower.includes("java") ||
+          lower.includes("udemy")
+        ) {
+          reply =
+            "He holds two certifications: **Java for Beginners** (Udemy) and **Oracle Cloud AI Foundations Associate** (2025). The Oracle certification covers AI concepts, and the Java course built his core programming skills.";
+          lastTopic = "certifications";
+        } else if (
+          lower.includes("contact") ||
+          lower.includes("email") ||
+          lower.includes("reach") ||
+          lower.includes("github") ||
+          lower.includes("linkedin")
+        ) {
+          reply =
+            "You can reach Dhinesh via email: **venkatragavandurairaj@gmail.com**. He's also on GitHub (**dhinesh-kv**) and LinkedIn. I can copy the email for you if you like!";
+          lastTopic = "contact";
+        } else if (
+          lower.includes("interest") ||
+          lower.includes("ai") ||
+          lower.includes("machine learning") ||
+          lower.includes("llm") ||
+          lower.includes("langchain")
+        ) {
+          reply =
+            "Dhinesh is deeply interested in **AI and machine learning**. He's currently learning LangChain, prompt engineering, and exploring how to integrate AI into web applications. His project uses AI for anomaly detection and predictive sync. He's also fascinated by role prompting and multitask AI systems.";
+          lastTopic = "interests";
+        } else if (
+          lower.includes("intention") ||
+          lower.includes("role prompting") ||
+          lower.includes("content based") ||
+          lower.includes("multitask")
+        ) {
+          reply =
+            "His AI design includes three layers: **Role prompting** (autonomous visitor agent), **Content‑based analysis** (contextual QR decision), and **Multitask prompting** (parallel scan, storage, sync, validation). All work together for a smart, adaptive system.";
+          lastTopic = "intention";
+        } else if (lower.includes("more") && lastTopic) {
+          if (lastTopic === "skills")
+            reply =
+              "He's actively learning **TypeScript, Next.js, and Docker**. His proficiency in Java is 80%, JavaScript 85%, and React 60%. Happy to dive deeper!";
+          else if (lastTopic === "projects")
+            reply =
+              "The AI layer includes role prompting, content-based analysis, and multitask handling – it can detect anomalies and predict sync needs. Very cool!";
+          else if (lastTopic === "education")
+            reply =
+              "He also completed 'Java for Beginners' on Udemy and is an Oracle Cloud AI Foundations Associate. Any specific question?";
+          else if (lastTopic === "contact")
+            reply =
+              "Sure! The email is venkatragavandurairaj@gmail.com. Just click the copy button next to it in the Contact section.";
+          else if (lastTopic === "interests")
+            reply =
+              "He's also into **full‑stack development** and loves building scalable, offline‑first apps. Ask me anything!";
+          else if (lastTopic === "certifications")
+            reply =
+              "The Oracle AI certification covers foundational AI concepts, and the Java course gave him solid OOP skills.";
+          else if (lastTopic === "intention")
+            reply =
+              "You can read more in the 'Intention' section – it explains the three prompting strategies in detail.";
+          else
+            reply =
+              "I'm not sure what you mean – try asking about skills, projects, education, certifications, or contact.";
+        } else if (lower.includes("thank")) {
+          reply = "You're welcome! 😊 Let me know if you need anything else.";
+        } else {
+          reply =
+            "Hmm, I don't have information about that. You can ask me about Dhinesh's skills, projects, education, certifications, AI interests, or contact details.";
+        }
+
+        showTyping();
+        setTimeout(() => {
+          addBotMessage(reply);
+        }, 800);
+      }
+
+      function sendMessage() {
+        const text = chatInput.value.trim();
+        if (text === "") return;
+        addUserMessage(text);
+        chatInput.value = "";
+        processUserInput(text);
+        // Gamification: count chat messages
+        chatCount++;
+        if (chatCount >= 5) badgeChatter.classList.add("unlocked");
+      }
+
+      chatSend.addEventListener("click", sendMessage);
+      chatInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+
+      quickReplies.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const question = btn.dataset.question;
+          let fullQuestion = "";
+          if (question === "skills") fullQuestion = "Tell me about his skills.";
+          else if (question === "projects")
+            fullQuestion = "What projects has he done?";
+          else if (question === "contact")
+            fullQuestion = "How can I contact him?";
+          else if (question === "education")
+            fullQuestion = "What is his educational background?";
+          else if (question === "interests")
+            fullQuestion = "What are his interests?";
+          else if (question === "certifications")
+            fullQuestion = "What certifications does he have?";
+          addUserMessage(fullQuestion);
+          processUserInput(fullQuestion);
+          chatCount++;
+          if (chatCount >= 5) badgeChatter.classList.add("unlocked");
+        });
+      });
+
+      // Initial active dot
+      updateActiveDot();
+    </script>
+  </body>
+</html>
